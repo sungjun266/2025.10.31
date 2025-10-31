@@ -78,13 +78,15 @@ NVIDIA delivered the strongest growth but at the highest risk, while Apple offer
 
 ### Efficient Frontier Highlights
 
+Using 2-percentage-point weight increments, the long-only search yields the following notable mixes:
+
 | Portfolio | Annualized Return | Annualized Volatility | 005930.KS | AAPL | NVDA |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| Lowest-volatility point | 24.23% | 28.24% | 0% | 100% | 0% |
-| Diversified mix | 26.93% | 21.92% | 42% | 56% | 2% |
-| Global minimum variance | 30.57% | 21.84% | 44% | 50% | 6% |
+| Global minimum variance (lowest volatility) | 30.57% | 21.84% | 44% | 50% | 6% |
+| Maximum Sharpe ratio (risk-free 0%) | 95.26% | 34.43% | 36% | 0% | 64% |
+| Maximum return | 149.18% | 49.45% | 0% | 0% | 100% |
 
-The diversified combinations significantly reduced volatility versus single-stock holdings while keeping expected returns in the mid-20% to low-30% range.
+The minimum-variance allocation dramatically lowers volatility relative to holding any single stock, while still improving on Apple and Samsung's standalone returns. Introducing more NVIDIA boosts expected growth but increases risk; the Sharpe-optimal mix balances the trade-off before the frontier transitions into near-pure NVIDIA exposure.
 
 ![Efficient frontier for Samsung Electronics, Apple, and NVIDIA](efficient_frontier.svg)
 

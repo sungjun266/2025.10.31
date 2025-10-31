@@ -82,49 +82,61 @@ for i in range(n):
 # Portfolio grid search
 step = 0.02
 points = []
-for i in range(int(1 / step) + 1):
-    w1 = round(i * step, 4)
-    if w1 > 1.0:
-        continue
-    remaining1 = 1.0 - w1
-    for j in range(int(remaining1 / step) + 1):
-        w2 = round(j * step, 4)
-        if w2 > remaining1:
-            continue
-        w3 = round(1.0 - w1 - w2, 4)
-        weights = [w1, w2, w3]
-        # Ensure weights sum to 1 (floating tolerance)
-        total_weight = sum(weights)
-        if abs(total_weight - 1.0) > 1e-6:
-            continue
-        port_mean_daily = sum(weights[k] * means[k] for k in range(n))
+total_units = int(round(1.0 / step))
+
+
+def enumerate_weights(num_assets, units_remaining, prefix_units):
+    if len(prefix_units) == num_assets - 1:
+        last_units = units_remaining
+        if last_units < 0:
+            return
+        weights_units = prefix_units + [last_units]
+        weight_vector = [round(unit / total_units, 4) for unit in weights_units]
+        points.append(compute_portfolio(weight_vector))
+        return
+
+    start_units = 0
+    end_units = units_remaining
+    for units in range(start_units, end_units + 1):
+        enumerate_weights(num_assets, units_remaining - units, prefix_units + [units])
+
+
+def compute_portfolio(weights):
+    port_mean_daily = sum(weights[k] * means[k] for k in range(n))
+    port_var_daily = 0.0
+    for a in range(n):
+        for b in range(n):
+            port_var_daily += weights[a] * weights[b] * covariance[a][b]
+    if port_var_daily < 0:
         port_var_daily = 0.0
-        for a in range(n):
-            for b in range(n):
-                port_var_daily += weights[a] * weights[b] * covariance[a][b]
-        if port_var_daily < 0:
-            port_var_daily = 0.0
-        port_vol_daily = math.sqrt(port_var_daily)
-        # Annualize
-        annual_return = (1.0 + port_mean_daily) ** 252 - 1.0
-        annual_vol = port_vol_daily * math.sqrt(252)
-        points.append({
-            "weights": weights,
-            "annual_return": annual_return,
-            "annual_vol": annual_vol,
-            "mean_daily": port_mean_daily,
-            "vol_daily": port_vol_daily,
-        })
+    port_vol_daily = math.sqrt(port_var_daily)
+    if port_vol_daily > 0:
+        sharpe = (port_mean_daily / port_vol_daily) * math.sqrt(252)
+    else:
+        sharpe = float("nan")
+    annual_return = (1.0 + port_mean_daily) ** 252 - 1.0
+    annual_vol = port_vol_daily * math.sqrt(252)
+    return {
+        "weights": weights,
+        "annual_return": annual_return,
+        "annual_vol": annual_vol,
+        "mean_daily": port_mean_daily,
+        "vol_daily": port_vol_daily,
+        "sharpe": sharpe,
+    }
+
+
+enumerate_weights(n, total_units, [])
 
 # Efficient frontier extraction
-points_sorted = sorted(points, key=lambda item: item["annual_return"])
+points_sorted = sorted(points, key=lambda item: item["annual_vol"])
 frontier = []
-min_vol_so_far = float("inf")
+max_return_so_far = -float("inf")
 for point in points_sorted:
-    vol = point["annual_vol"]
-    if vol + 1e-9 < min_vol_so_far:
+    ret = point["annual_return"]
+    if ret > max_return_so_far + 1e-9:
         frontier.append(point)
-        min_vol_so_far = vol
+        max_return_so_far = ret
 
 # Asset-only metrics
 asset_metrics = []
@@ -141,6 +153,9 @@ for idx, ticker in enumerate(TICKERS):
 
 # Identify global minimum variance portfolio
 gmv = min(points, key=lambda item: item["annual_vol"])
+max_return_point = max(points, key=lambda item: item["annual_return"])
+finite_sharpe_points = [p for p in points if not math.isnan(p["sharpe"])]
+best_sharpe = max(finite_sharpe_points, key=lambda item: item["sharpe"]) if finite_sharpe_points else None
 
 def format_pct(value):
     return f"{value * 100:.2f}%"
@@ -164,6 +179,34 @@ print(
 )
 print(
     f"  annual return={format_pct(gmv['annual_return'])}, annual vol={format_pct(gmv['annual_vol'])}"
+)
+
+if best_sharpe:
+    print("\nMaximum Sharpe ratio portfolio (risk-free 0%):")
+    print(
+        "  weights="
+        + ", ".join(
+            f"{ticker} {weight * 100:.1f}%" for ticker, weight in zip(TICKERS, best_sharpe["weights"])
+        )
+    )
+    print(
+        "  annual return="
+        + format_pct(best_sharpe["annual_return"])
+        + ", annual vol="
+        + format_pct(best_sharpe["annual_vol"])
+        + ", Sharpe="
+        + f"{best_sharpe['sharpe']:.2f}"
+    )
+
+print("\nMaximum return portfolio:")
+print(
+    "  weights="
+    + ", ".join(
+        f"{ticker} {weight * 100:.1f}%" for ticker, weight in zip(TICKERS, max_return_point["weights"])
+    )
+)
+print(
+    f"  annual return={format_pct(max_return_point['annual_return'])}, annual vol={format_pct(max_return_point['annual_vol'])}"
 )
 
 print("\nEfficient frontier sample (first 5 points):")
