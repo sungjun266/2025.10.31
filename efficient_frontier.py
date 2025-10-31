@@ -1,10 +1,14 @@
 import csv
+import json
 import math
+import os
 from collections import defaultdict
 from datetime import datetime
 
 CSV_PATH = "temp.csv"
 OUTPUT_SVG = "efficient_frontier.svg"
+DOCS_SVG = "docs/assets/efficient_frontier.svg"
+OUTPUT_JSON = "docs/data/analysis_summary.json"
 TICKERS = []
 
 # CSV를 읽어 종목별 종가를 수집합니다.
@@ -113,7 +117,7 @@ def compute_portfolio(weights):
     if port_vol_daily > 0:
         sharpe = (port_mean_daily / port_vol_daily) * math.sqrt(252)
     else:
-        sharpe = float("nan")
+        sharpe = None
     annual_return = (1.0 + port_mean_daily) ** 252 - 1.0
     annual_vol = port_vol_daily * math.sqrt(252)
     return {
@@ -352,7 +356,49 @@ for idx, metric in enumerate(asset_metrics):
 
 svg_lines.append("</svg>")
 
-with open(OUTPUT_SVG, "w", encoding="utf-8") as out_svg:
-    out_svg.write("\n".join(svg_lines))
+svg_content = "\n".join(svg_lines)
 
-print(f"\nSVG 파일 생성 완료: {OUTPUT_SVG}")
+with open(OUTPUT_SVG, "w", encoding="utf-8") as out_svg:
+    out_svg.write(svg_content)
+
+os.makedirs(os.path.dirname(DOCS_SVG), exist_ok=True)
+with open(DOCS_SVG, "w", encoding="utf-8") as out_docs_svg:
+    out_docs_svg.write(svg_content)
+
+print(f"\nSVG 파일 생성 완료: {OUTPUT_SVG} 및 {DOCS_SVG}")
+
+# 웹페이지에서 활용할 분석 요약 JSON을 생성합니다.
+os.makedirs(os.path.dirname(OUTPUT_JSON), exist_ok=True)
+
+
+def sanitize_portfolio(portfolio):
+    return {
+        "weights": portfolio["weights"],
+        "annual_return": portfolio["annual_return"],
+        "annual_vol": portfolio["annual_vol"],
+        "mean_daily": portfolio["mean_daily"],
+        "vol_daily": portfolio["vol_daily"],
+        "sharpe": portfolio["sharpe"],
+    }
+
+
+summary_payload = {
+    "metadata": {
+        "tickers": TICKERS,
+        "common_days": m,
+        "start_date": common_dates[0].isoformat() if common_dates else None,
+        "end_date": common_dates[-1].isoformat() if common_dates else None,
+    },
+    "assets": asset_metrics,
+    "portfolios": {
+        "gmv": sanitize_portfolio(gmv),
+        "max_return": sanitize_portfolio(max_return_point),
+        "max_sharpe": sanitize_portfolio(best_sharpe) if best_sharpe else None,
+    },
+    "frontier": [sanitize_portfolio(point) for point in frontier],
+}
+
+with open(OUTPUT_JSON, "w", encoding="utf-8") as out_json:
+    json.dump(summary_payload, out_json, ensure_ascii=False, indent=2)
+
+print(f"JSON 파일 생성 완료: {OUTPUT_JSON}")
