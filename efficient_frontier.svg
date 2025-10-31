@@ -3,8 +3,8 @@
   <rect x='0' y='0' width='800' height='520' fill='white' />
   <line x1='70' y1='450' x2='730' y2='450' stroke='black' stroke-width='1' />
   <line x1='70' y1='70' x2='70' y2='450' stroke='black' stroke-width='1' />
-  <text x='400.0' y='500' text-anchor='middle'>Annualized Volatility</text>
-  <text x='20' y='260.0' text-anchor='middle' transform='rotate(-90 20 260.0)'>Annualized Return</text>
+  <text x='400.0' y='500' text-anchor='middle'>연율화 변동성</text>
+  <text x='20' y='260.0' text-anchor='middle' transform='rotate(-90 20 260.0)'>연율화 수익률</text>
   <line x1='70.00' y1='450' x2='70.00' y2='456' stroke='black' stroke-width='1' />
   <text x='70.00' y='470' text-anchor='middle'>19.07%</text>
   <line x1='180.00' y1='450' x2='180.00' y2='456' stroke='black' stroke-width='1' />

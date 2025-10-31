@@ -1,103 +1,103 @@
-# Stock Price Dataset Overview
+# `temp.csv` 주가 데이터 개요
 
-This repository contains `temp.csv`, a daily price history for three large-cap equities: Samsung Electronics (005930.KS), Apple (AAPL), and NVIDIA (NVDA). The file stores Open, High, Low, Close, and Volume columns for each ticker.
+이 저장소는 삼성전자(005930.KS), 애플(AAPL), 엔비디아(NVDA) 세 종목의 일별 시세를 담은 `temp.csv` 파일과 이를 활용한 효율적 투자 프런티어 분석 스크립트를 포함합니다. CSV는 각 종목마다 시가·고가·저가·종가·거래량을 제공하며, 세 줄짜리 다중 헤더 구조로 정리돼 있습니다.
 
-## Coverage
+## 관측 기간과 표본 수
 
-| Ticker | First Trading Day | Most Recent Trading Day | Trading Days |
+| 종목 | 최초 거래일 | 최종 거래일 | 거래일 수 |
 | --- | --- | --- | ---: |
 | 005930.KS | 2023-10-16 | 2025-10-10 | 482 |
 | AAPL | 2023-10-16 | 2025-10-10 | 499 |
 | NVDA | 2023-10-16 | 2025-10-10 | 499 |
 
-Note: 005930.KS observes fewer sessions because the Korean exchange has different holiday and weekend schedules than the U.S. markets.
+> 삼성전자는 한국거래소 휴장일이 미국 증시와 달라 482개의 종가만 확보됩니다. 효율적 프런티어 계산에서는 세 종목 모두가 동시에 거래된 464개 공통 영업일을 사용합니다.
 
-## Price Performance
+## 종가 기준 성과 요약
 
-- **005930.KS**: Close moved from 64,781.67 on 2023-10-16 to 94,400.00 on 2025-10-10 (+45.72% change).
-- **AAPL**: Close moved from 176.99 on 2023-10-16 to 245.27 on 2025-10-10 (+38.58% change).
-- **NVDA**: Close moved from 46.07 on 2023-10-16 to 183.16 on 2025-10-10 (+297.59% change).
+- **005930.KS**: 2023-10-16 종가 64,781.67 → 2025-10-10 종가 94,400.00 (총수익률 +45.72%)
+- **AAPL**: 176.99 → 245.27 (총수익률 +38.58%)
+- **NVDA**: 46.07 → 183.16 (총수익률 +297.59%)
 
-## Daily Summary Statistics
+## 일별 요약 통계
 
 ### 005930.KS
 
-| Metric | Mean | Median | Min | Max |
+| 지표 | 평균 | 중앙값 | 최소 | 최대 |
 | --- | ---: | ---: | ---: | ---: |
-| Open | 66,509.00 | 68,872.64 | 49,263.38 | 94,000.00 |
-| High | 67,202.08 | 69,490.01 | 50,784.92 | 94,500.00 |
-| Low | 65,822.65 | 68,408.07 | 48,968.97 | 92,700.00 |
-| Close | 66,471.53 | 68,812.25 | 48,968.97 | 94,400.00 |
-| Volume | 19,481,204.69 | 17,577,060.00 | 2,957,915.00 | 57,691,266.00 |
+| 시가 | 66,509.00 | 68,872.64 | 49,263.38 | 94,000.00 |
+| 고가 | 67,202.08 | 69,490.01 | 50,784.92 | 94,500.00 |
+| 저가 | 65,822.65 | 68,408.07 | 48,968.97 | 92,700.00 |
+| 종가 | 66,471.53 | 68,812.25 | 48,968.97 | 94,400.00 |
+| 거래량 | 19,481,204.69 | 17,577,060.00 | 2,957,915.00 | 57,691,266.00 |
 
 ### AAPL
 
-| Metric | Mean | Median | Min | Max |
+| 지표 | 평균 | 중앙값 | 최소 | 최대 |
 | --- | ---: | ---: | ---: | ---: |
-| Open | 209.29 | 210.92 | 164.17 | 257.99 |
-| High | 211.47 | 213.70 | 165.21 | 259.24 |
-| Low | 207.33 | 209.35 | 162.91 | 256.72 |
-| Close | 209.52 | 212.02 | 163.82 | 258.10 |
-| Volume | 56,558,297.39 | 50,036,300.00 | 23,234,700.00 | 318,679,900.00 |
+| 시가 | 209.29 | 210.92 | 164.17 | 257.99 |
+| 고가 | 211.47 | 213.70 | 165.21 | 259.24 |
+| 저가 | 207.33 | 209.35 | 162.91 | 256.72 |
+| 종가 | 209.52 | 212.02 | 163.82 | 258.10 |
+| 거래량 | 56,558,297.39 | 50,036,300.00 | 23,234,700.00 | 318,679,900.00 |
 
 ### NVDA
 
-| Metric | Mean | Median | Min | Max |
+| 지표 | 평균 | 중앙값 | 최소 | 최대 |
 | --- | ---: | ---: | ---: | ---: |
-| Open | 115.59 | 120.32 | 40.43 | 193.51 |
-| High | 117.54 | 122.40 | 40.85 | 195.62 |
-| Low | 113.41 | 117.41 | 39.21 | 191.06 |
-| Close | 115.60 | 120.67 | 40.30 | 192.57 |
-| Volume | 325,122,504.81 | 289,680,000.00 | 105,157,000.00 | 1,142,269,000.00 |
+| 시가 | 115.59 | 120.32 | 40.43 | 193.51 |
+| 고가 | 117.54 | 122.40 | 40.85 | 195.62 |
+| 저가 | 113.41 | 117.41 | 39.21 | 191.06 |
+| 종가 | 115.60 | 120.67 | 40.30 | 192.57 |
+| 거래량 | 325,122,504.81 | 289,680,000.00 | 105,157,000.00 | 1,142,269,000.00 |
 
-## Cross-Ticker Relationships
+## 종목 간 상관관계
 
-Daily arithmetic return correlations (based on overlapping sessions):
+464개의 공통 거래일에 대해 산출한 일간 산술 수익률 상관계수는 다음과 같습니다.
 
-| Pair | Correlation | Overlapping Days |
+| 종목 쌍 | 상관계수 | 공통 거래일 |
 | --- | ---: | ---: |
 | 005930.KS vs AAPL | 0.112 | 464 |
 | 005930.KS vs NVDA | 0.086 | 464 |
 | AAPL vs NVDA | 0.374 | 498 |
 
-Apple and NVIDIA show the strongest positive co-movement in daily returns, while Samsung Electronics exhibits only a mild relationship with the U.S.-listed stocks.
+애플과 엔비디아는 상대적으로 높은 동조화(0.374)를 보였으며, 삼성전자는 미국 상장 종목들과의 동조화가 제한적입니다.
 
-## Efficient Frontier Analysis
+## 효율적 프런티어 분석 개요
 
-Using the 464 overlapping trading sessions between 2023-10-17 and 2025-10-10, we computed close-to-close arithmetic returns and enumerated long-only portfolios in 2 percentage-point weight increments to approximate the efficient frontier. Portfolios were annualized assuming 252 trading days per year.
+- 2023-10-17부터 2025-10-10까지의 공통 거래일(464일) 종가 기준 수익률을 사용했습니다.
+- 모든 포트폴리오는 공매도 금지(가중치 ≥ 0) 조건에서 2%포인트 간격으로 가중치를 탐색했습니다.
+- 일간 수익률과 변동성을 연 252거래일 기준으로 연율화했습니다.
 
-### Annualized Standalone Performance
+### 단일 종목 연율화 성과
 
-| Portfolio | Annualized Return | Annualized Volatility |
+| 포트폴리오 | 연간 기대수익률 | 연간 변동성 |
 | --- | ---: | ---: |
 | 005930.KS | 26.49% | 30.88% |
 | AAPL | 24.23% | 28.24% |
 | NVDA | 149.18% | 49.45% |
 
-NVIDIA delivered the strongest growth but at the highest risk, while Apple offered the lowest standalone volatility among the three names.
+### 주요 포트폴리오 하이라이트
 
-### Efficient Frontier Highlights
-
-Using 2-percentage-point weight increments, the long-only search yields the following notable mixes:
-
-| Portfolio | Annualized Return | Annualized Volatility | 005930.KS | AAPL | NVDA |
+| 포트폴리오 | 연간 기대수익률 | 연간 변동성 | 005930.KS | AAPL | NVDA |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| Global minimum variance (lowest volatility) | 30.57% | 21.84% | 44% | 50% | 6% |
-| Maximum Sharpe ratio (risk-free 0%) | 95.26% | 34.43% | 36% | 0% | 64% |
-| Maximum return | 149.18% | 49.45% | 0% | 0% | 100% |
+| 글로벌 최소분산 | 30.57% | 21.84% | 44% | 50% | 6% |
+| 최대 샤프 지수 (무위험수익률 0%) | 95.26% | 34.43% | 36% | 0% | 64% |
+| 최대 기대수익 | 149.18% | 49.45% | 0% | 0% | 100% |
 
-The minimum-variance allocation dramatically lowers volatility relative to holding any single stock, while still improving on Apple and Samsung's standalone returns. Introducing more NVIDIA boosts expected growth but increases risk; the Sharpe-optimal mix balances the trade-off before the frontier transitions into near-pure NVIDIA exposure.
+최소분산 포트폴리오는 단일 종목 대비 변동성을 크게 낮추면서도 기대수익을 개선합니다. 엔비디아 비중을 늘릴수록 기대수익이 높아지지만 위험 또한 커지며, 샤프 지수 최적 조합이 균형점 역할을 합니다.
 
-![Efficient frontier for Samsung Electronics, Apple, and NVIDIA](efficient_frontier.svg)
+![삼성전자·애플·엔비디아 효율적 프런티어](efficient_frontier.svg)
 
-## Column Layout
+## CSV 헤더 구조
 
-The CSV file uses a three-row header where the first column holds the trade date. Subsequent columns repeat the pattern below for each ticker:
+`temp.csv`는 날짜 열 이후 각 종목에 대해 다음과 같은 열 묶음이 반복됩니다.
 
-| Column Group | Description |
+| 열 묶음 | 설명 |
 | --- | --- |
-| Open | Opening auction price for the session |
-| High | Session high price |
-| Low | Session low price |
-| Close | Official closing price |
-| Volume | Exchange-reported share volume |
+| Open | 해당 거래일 시가 |
+| High | 해당 거래일 고가 |
+| Low | 해당 거래일 저가 |
+| Close | 해당 거래일 종가 |
+| Volume | 거래량 |
+
+분석 파이프라인은 이러한 구조를 기반으로 종목별 종가를 추출하고 일간 수익률을 계산합니다.

@@ -7,18 +7,18 @@ CSV_PATH = "temp.csv"
 OUTPUT_SVG = "efficient_frontier.svg"
 TICKERS = []
 
-# Read CSV and capture close prices per ticker
-close_prices = defaultdict(list)  # ticker -> list of (date, close)
+# CSV를 읽어 종목별 종가를 수집합니다.
+close_prices = defaultdict(list)  # ticker -> (날짜, 종가) 목록
 with open(CSV_PATH, "r", newline="") as f:
     reader = csv.reader(f)
     header_price = next(reader)
     header_ticker = next(reader)
     header_misc = next(reader)
-    # Identify close price columns
+    # 종가 열 위치를 확인합니다.
     close_cols = []
     for idx, (ptype, ticker) in enumerate(zip(header_price, header_ticker)):
         if idx == 0:
-            continue  # date column
+            continue  # 날짜 열
         if ptype.strip().lower() == "close":
             close_cols.append((idx, ticker.strip()))
             if ticker.strip() not in TICKERS:
@@ -39,7 +39,7 @@ with open(CSV_PATH, "r", newline="") as f:
 if not TICKERS:
     raise RuntimeError("No tickers found in CSV header")
 
-# Compute daily returns per ticker
+# 종목별 일간 수익률을 계산합니다.
 daily_returns = {}
 for ticker in TICKERS:
     series = sorted(close_prices[ticker], key=lambda item: item[0])
@@ -53,13 +53,13 @@ for ticker in TICKERS:
         returns[date] = rtn
     daily_returns[ticker] = returns
 
-# Determine overlapping dates across all tickers
+# 모든 종목에 공통으로 존재하는 거래일을 찾습니다.
 common_dates = set.intersection(*(set(rtns.keys()) for rtns in daily_returns.values()))
 common_dates = sorted(common_dates)
 if not common_dates:
     raise RuntimeError("No overlapping return dates across tickers")
 
-# Build matrix of returns per date
+# 날짜별 수익률 행렬을 구성합니다.
 return_matrix = []
 for date in common_dates:
     row = [daily_returns[ticker][date] for ticker in TICKERS]
@@ -79,7 +79,7 @@ for i in range(n):
         cov /= (m - 1)
         covariance[i][j] = cov
 
-# Portfolio grid search
+# 포트폴리오 조합을 격자 탐색으로 생성합니다.
 step = 0.02
 points = []
 total_units = int(round(1.0 / step))
@@ -128,7 +128,7 @@ def compute_portfolio(weights):
 
 enumerate_weights(n, total_units, [])
 
-# Efficient frontier extraction
+# 효율적 프런티어 상의 점들을 추출합니다.
 points_sorted = sorted(points, key=lambda item: item["annual_vol"])
 frontier = []
 max_return_so_far = -float("inf")
@@ -138,7 +138,7 @@ for point in points_sorted:
         frontier.append(point)
         max_return_so_far = ret
 
-# Asset-only metrics
+# 단일 종목 자체의 연율화 지표를 계산합니다.
 asset_metrics = []
 for idx, ticker in enumerate(TICKERS):
     annual_return = (1.0 + means[idx]) ** 252 - 1.0
@@ -151,7 +151,7 @@ for idx, ticker in enumerate(TICKERS):
         "vol_daily": math.sqrt(covariance[idx][idx]),
     })
 
-# Identify global minimum variance portfolio
+# 대표 포트폴리오를 선택합니다.
 gmv = min(points, key=lambda item: item["annual_vol"])
 max_return_point = max(points, key=lambda item: item["annual_return"])
 finite_sharpe_points = [p for p in points if not math.isnan(p["sharpe"])]
@@ -160,74 +160,74 @@ best_sharpe = max(finite_sharpe_points, key=lambda item: item["sharpe"]) if fini
 def format_pct(value):
     return f"{value * 100:.2f}%"
 
-# Produce text summary for console output
-print("Common trading days used:", m)
+# 콘솔 요약을 한국어로 출력합니다.
+print("사용된 공통 거래일 수:", m)
 if common_dates:
-    print("Date range:", common_dates[0], "to", common_dates[-1])
-print("\nPer-asset annualized metrics:")
+    print("적용 기간:", common_dates[0], "~", common_dates[-1])
+print("\n종목별 연율화 지표:")
 for metric in asset_metrics:
     print(
-        f"  {metric['ticker']}: return={format_pct(metric['annual_return'])}, vol={format_pct(metric['annual_vol'])}"
+        f"  {metric['ticker']}: 수익률={format_pct(metric['annual_return'])}, 변동성={format_pct(metric['annual_vol'])}"
     )
 
-print("\nGlobal minimum variance portfolio:")
+print("\n글로벌 최소분산 포트폴리오:")
 print(
-    "  weights="
+    "  비중="
     + ", ".join(
         f"{ticker} {weight * 100:.1f}%" for ticker, weight in zip(TICKERS, gmv["weights"])
     )
 )
 print(
-    f"  annual return={format_pct(gmv['annual_return'])}, annual vol={format_pct(gmv['annual_vol'])}"
+    f"  연간 수익률={format_pct(gmv['annual_return'])}, 연간 변동성={format_pct(gmv['annual_vol'])}"
 )
 
 if best_sharpe:
-    print("\nMaximum Sharpe ratio portfolio (risk-free 0%):")
+    print("\n최대 샤프 지수 포트폴리오(무위험수익률 0%):")
     print(
-        "  weights="
+        "  비중="
         + ", ".join(
             f"{ticker} {weight * 100:.1f}%" for ticker, weight in zip(TICKERS, best_sharpe["weights"])
         )
     )
     print(
-        "  annual return="
+        "  연간 수익률="
         + format_pct(best_sharpe["annual_return"])
-        + ", annual vol="
+        + ", 연간 변동성="
         + format_pct(best_sharpe["annual_vol"])
-        + ", Sharpe="
+        + ", 샤프="
         + f"{best_sharpe['sharpe']:.2f}"
     )
 
-print("\nMaximum return portfolio:")
+print("\n최대 기대수익 포트폴리오:")
 print(
-    "  weights="
+    "  비중="
     + ", ".join(
         f"{ticker} {weight * 100:.1f}%" for ticker, weight in zip(TICKERS, max_return_point["weights"])
     )
 )
 print(
-    f"  annual return={format_pct(max_return_point['annual_return'])}, annual vol={format_pct(max_return_point['annual_vol'])}"
+    f"  연간 수익률={format_pct(max_return_point['annual_return'])}, 연간 변동성={format_pct(max_return_point['annual_vol'])}"
 )
 
-print("\nEfficient frontier sample (first 5 points):")
+print("\n효율적 프런티어 예시 (처음 5개 조합):")
 for point in frontier[:5]:
     print(
-        f"  return={format_pct(point['annual_return'])}, vol={format_pct(point['annual_vol'])}, "
+        f"  수익률={format_pct(point['annual_return'])}, 변동성={format_pct(point['annual_vol'])}, "
         + ", ".join(
             f"{ticker} {weight * 100:.1f}%" for ticker, weight in zip(TICKERS, point["weights"])
         )
     )
 
-print("\nEfficient frontier sample (last 5 points):")
+print("\n효율적 프런티어 예시 (마지막 5개 조합):")
 for point in frontier[-5:]:
     print(
-        f"  return={format_pct(point['annual_return'])}, vol={format_pct(point['annual_vol'])}, "
+        f"  수익률={format_pct(point['annual_return'])}, 변동성={format_pct(point['annual_vol'])}, "
         + ", ".join(
             f"{ticker} {weight * 100:.1f}%" for ticker, weight in zip(TICKERS, point["weights"])
         )
     )
 
-# Build SVG visualization
+# 효율적 프런티어 SVG를 생성합니다.
 width, height = 800, 520
 padding = 70
 plot_width = width - 2 * padding
@@ -241,7 +241,7 @@ max_return = max(all_returns)
 min_vol = min(all_vols)
 max_vol = max(all_vols)
 
-# Expand ranges slightly for padding
+# 시각적 여유를 위해 축 범위를 확장합니다.
 return_padding = (max_return - min_return) * 0.1 if max_return > min_return else 0.05
 vol_padding = (max_vol - min_vol) * 0.1 if max_vol > min_vol else 0.05
 min_return -= return_padding
@@ -249,7 +249,7 @@ max_return += return_padding
 min_vol -= vol_padding
 max_vol += vol_padding
 
-# Guard for identical values
+# 최대·최소 값이 동일한 경우를 보정합니다.
 if min_return == max_return:
     min_return -= 0.05
     max_return += 0.05
@@ -269,7 +269,7 @@ def y_coord(ret):
     ratio = min(max(ratio, 0.0), 1.0)
     return height - padding - ratio * plot_height
 
-# Axes and tick marks
+# 축과 눈금을 그립니다.
 x_ticks = 6
 y_ticks = 6
 svg_lines = [
@@ -280,8 +280,8 @@ svg_lines = [
     "  <rect x='0' y='0' width='{0}' height='{1}' fill='white' />".format(width, height),
     f"  <line x1='{padding}' y1='{height - padding}' x2='{width - padding}' y2='{height - padding}' stroke='black' stroke-width='1' />",
     f"  <line x1='{padding}' y1='{padding}' x2='{padding}' y2='{height - padding}' stroke='black' stroke-width='1' />",
-    f"  <text x='{width / 2}' y='{height - 20}' text-anchor='middle'>Annualized Volatility</text>",
-    f"  <text x='20' y='{height / 2}' text-anchor='middle' transform='rotate(-90 20 {height / 2})'>Annualized Return</text>",
+    f"  <text x='{width / 2}' y='{height - 20}' text-anchor='middle'>연율화 변동성</text>",
+    f"  <text x='20' y='{height / 2}' text-anchor='middle' transform='rotate(-90 20 {height / 2})'>연율화 수익률</text>",
 ]
 
 for i in range(x_ticks + 1):
@@ -306,7 +306,7 @@ for i in range(y_ticks + 1):
         f"  <text x='{padding - 10}' y='{y + 4:.2f}' text-anchor='end'>{format_pct(ret)}</text>"
     )
 
-# Plot all portfolios as faint points
+# 전체 포트폴리오 조합을 옅은 점으로 표시합니다.
 for point in points:
     x = x_coord(point["annual_vol"])
     y = y_coord(point["annual_return"])
@@ -314,7 +314,7 @@ for point in points:
         f"  <circle cx='{x:.2f}' cy='{y:.2f}' r='2' fill='#c7d3e3' opacity='0.6' />"
     )
 
-# Plot efficient frontier as connected line
+# 효율적 프런티어를 선으로 연결해 표시합니다.
 if len(frontier) >= 2:
     path_commands = []
     for idx, point in enumerate(frontier):
@@ -327,7 +327,7 @@ if len(frontier) >= 2:
         f"  <path d='{path_data}' fill='none' stroke='#1f4e79' stroke-width='2' />"
     )
 
-# Highlight GMV
+# 최소분산 포트폴리오(GMV)를 강조합니다.
 x_gmv = x_coord(gmv["annual_vol"])
 y_gmv = y_coord(gmv["annual_return"])
 svg_lines.append(
@@ -337,7 +337,7 @@ svg_lines.append(
     f"  <text x='{x_gmv + 8:.2f}' y='{y_gmv - 8:.2f}' fill='#b36b00'>GMV</text>"
 )
 
-# Plot individual assets
+# 개별 종목 위치를 표시합니다.
 colors = ["#d62728", "#2ca02c", "#9467bd", "#ff7f0e", "#17becf"]
 for idx, metric in enumerate(asset_metrics):
     x = x_coord(metric["annual_vol"])
@@ -355,4 +355,4 @@ svg_lines.append("</svg>")
 with open(OUTPUT_SVG, "w", encoding="utf-8") as out_svg:
     out_svg.write("\n".join(svg_lines))
 
-print(f"\nSVG written to {OUTPUT_SVG}")
+print(f"\nSVG 파일 생성 완료: {OUTPUT_SVG}")
