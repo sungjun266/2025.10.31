@@ -8,7 +8,11 @@
 - `docs/data/analysis_summary.json`: `python efficient_frontier.py` 실행 시 갱신되는 분석 요약 데이터입니다.
 - `docs/assets/efficient_frontier.svg`: 동일 스크립트가 생성하는 SVG 그래프를 웹페이지에서 그대로 활용합니다.
 
-로컬에서 결과를 미리 확인하려면 간단한 정적 서버(예: `python -m http.server`)로 `docs/` 디렉터리를 서빙한 뒤 브라우저에서 접속하면 됩니다.
+### 로컬 미리보기
+
+- `python serve.py` → `http://127.0.0.1:8000/`에서 대시보드를 확인합니다.
+- 포트를 변경하려면 `python serve.py --port 3000`처럼 실행하거나 `--open-browser` 옵션으로 브라우저 자동 실행을 활성화할 수 있습니다.
+- 표준 라이브러리 기반이므로 추가 의존성 설치 없이 동작합니다. 기존처럼 `python -m http.server`로 `docs/` 폴더를 직접 서빙해도 됩니다.
 
 ## 관측 기간과 표본 수
 
